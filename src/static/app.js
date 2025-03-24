@@ -25,6 +25,11 @@ document.addEventListener("DOMContentLoaded", () => {
           <p>${details.description}</p>
           <p><strong>Schedule:</strong> ${details.schedule}</p>
           <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
+          <p><strong>Participants:</strong> ${
+            details.participants.length > 0
+              ? details.participants.join(", ")
+              : "No participants yet"
+          }</p>
         `;
 
         activitiesList.appendChild(activityCard);
@@ -48,7 +53,42 @@ document.addEventListener("DOMContentLoaded", () => {
     const email = document.getElementById("email").value;
     const activity = document.getElementById("activity").value;
 
+    // Validate email format
+    const gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+    if (!gmailRegex.test(email)) {
+      messageDiv.textContent = "Por favor, insira um email válido do Gmail.";
+      messageDiv.className = "error";
+      messageDiv.classList.remove("hidden");
+
+      // Hide message after 5 seconds
+      setTimeout(() => {
+        messageDiv.classList.add("hidden");
+      }, 5000);
+
+      return;
+    }
+
     try {
+      // Check if the email is already registered for the activity
+      const checkResponse = await fetch(
+        `/activities/${encodeURIComponent(activity)}/check?email=${encodeURIComponent(email)}`
+      );
+      const checkResult = await checkResponse.json();
+
+      if (checkResponse.ok && checkResult.alreadyRegistered) {
+        messageDiv.textContent = "Você já está inscrito nesta atividade.";
+        messageDiv.className = "error";
+        messageDiv.classList.remove("hidden");
+
+        // Hide message after 5 seconds
+        setTimeout(() => {
+          messageDiv.classList.add("hidden");
+        }, 5000);
+
+        return;
+      }
+
+      // Proceed with signup
       const response = await fetch(
         `/activities/${encodeURIComponent(activity)}/signup?email=${encodeURIComponent(email)}`,
         {
