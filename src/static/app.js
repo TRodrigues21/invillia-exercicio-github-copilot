@@ -64,6 +64,26 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     try {
+      // Check if the email is already registered for the activity
+      const checkResponse = await fetch(
+        `/activities/${encodeURIComponent(activity)}/check?email=${encodeURIComponent(email)}`
+      );
+      const checkResult = await checkResponse.json();
+
+      if (checkResponse.ok && checkResult.alreadyRegistered) {
+        messageDiv.textContent = "Você já está inscrito nesta atividade.";
+        messageDiv.className = "error";
+        messageDiv.classList.remove("hidden");
+
+        // Hide message after 5 seconds
+        setTimeout(() => {
+          messageDiv.classList.add("hidden");
+        }, 5000);
+
+        return;
+      }
+
+      // Proceed with signup
       const response = await fetch(
         `/activities/${encodeURIComponent(activity)}/signup?email=${encodeURIComponent(email)}`,
         {
